@@ -5,12 +5,19 @@ angular.module('angularSimpleSlider')
 
     return {
 
-      restrict: 'E',
-      scope: {},
+      restrict: 'EA',
+      scope: {
+        onChange: '&'
+      },
 
       link: function postLink(scope, element, attrs) {
+        var opts = attrs;
 
-        scope.slider = new SimpleSliderService(element[0], attrs);
+        if (scope.onChange) {
+          opts.onChange = scope.onChange;
+        }
+
+        scope.slider = new SimpleSliderService(element[0], opts);
 
         attrs.$observe('change', function(value) {
           if (value) {

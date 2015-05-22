@@ -230,6 +230,7 @@
     this.endVal = parseInt(getdef(options.endValue, width + this.unit), 10);
     this.autoPlay = getdef(parseStringToBoolean(options.autoPlay), true);
     this.ease = getdef(options.ease, SimpleSlider.defaultEase);
+    this.onChange = getdef(options.onChange, null);
 
     this.init();
   };
@@ -356,7 +357,7 @@
 
   SimpleSlider.prototype.startAnim = function(target, fromValue, toValue){
 
-    anim(target.style, this.trProp, this.unit, this.trTime * 1000, 0, 0, fromValue, toValue, SimpleSlider.defaultEase);
+    anim(target.style, this.trProp, this.unit, this.trTime * 1000, 0, 0, fromValue, toValue, this.ease);
 
   };
 
@@ -378,10 +379,18 @@
 
   SimpleSlider.prototype.change = function(newIndex){
 
+    var prevIndex = this.actualIndex;
+
     this.remove(this.actualIndex);
     this.insert(newIndex);
 
     this.actualIndex = newIndex;
+
+    if (this.onChange ||
+      Object.prototype.toString.call(this.onChange) == '[object Function]') {
+
+      this.onChange(prevIndex, this.actualIndex);
+    }
 
   };
 
@@ -476,12 +485,19 @@ angular.module('angularSimpleSlider')
 
     return {
 
-      restrict: 'E',
-      scope: {},
+      restrict: 'EA',
+      scope: {
+        onChange: '&'
+      },
 
       link: function postLink(scope, element, attrs) {
+        var opts = attrs;
 
-        scope.slider = new SimpleSliderService(element[0], attrs);
+        if (scope.onChange) {
+          opts.onChange = scope.onChange;
+        }
+
+        scope.slider = new SimpleSliderService(element[0], opts);
 
         attrs.$observe('change', function(value) {
           if (value) {
